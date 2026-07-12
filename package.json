@@ -1,0 +1,23 @@
+{
+  "name": "advanced-playwright-web-testing",
+  "version": "1.0.0",
+  "description": "👋 Welcome!",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wlsf82/advanced-playwright-web-testing.git"
+  },
+  "keywords": [],
+  "author": "Walmyr <wlsf82@gmail.com> (https://walmyr.dev/)",
+  "license": "MIT",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/wlsf82/advanced-playwright-web-testing/issues"
+  },
+  "homepage": "https://github.com/wlsf82/advanced-playwright-web-testing#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@types/node": "^26.1.1"
+  }
+}
