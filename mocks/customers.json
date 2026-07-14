@@ -1,0 +1,18 @@
+{
+  "customers": [
+    {
+      "id": 1,
+      "name": "SpaceY Inc.",
+      "employees": 15000,
+      "contactInfo": null,
+      "size": "Large Enterprise",
+      "industry": "Technology",
+      "address": null
+    }
+  ],
+  "pageInfo": {
+    "currentPage": 1,
+    "totalPages": 1,
+    "totalCustomers": 1
+  }
+}
