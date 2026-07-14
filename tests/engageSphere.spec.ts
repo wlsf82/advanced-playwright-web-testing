@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 
 import customers from '../mocks/customers.json'
 import smallCustomers from '../mocks/smallCustomer.json'
+import techCustomer from '../mocks/techCustomer.json'
 
 test.describe('EngageSphere', () => {
   test('shows the mocked customer', async ({ page }) => {
@@ -60,6 +61,21 @@ test.describe('EngageSphere', () => {
     const [response] = await Promise.all([
       page.waitForResponse((res) => res.url().includes('/customers') && res.url().includes('size=Small')),
       page.getByTestId('size-filter').selectOption('Small'),
+    ])
+
+    expect(response.status()).toBe(200)
+  })
+
+  test('requests the selected industry filter', async ({ page }) => {
+    await page.route('**/customers*', async (route) => {
+      await route.fulfill({ json: techCustomer })
+    })
+
+    await page.goto('/')
+
+    const [response] = await Promise.all([
+      page.waitForResponse((res) => res.url().includes('/customers') && res.url().includes('industry=Technology')),
+      page.getByTestId('industry-filter').selectOption('Technology'),
     ])
 
     expect(response.status()).toBe(200)
