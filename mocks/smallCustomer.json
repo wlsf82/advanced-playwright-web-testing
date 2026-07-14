@@ -1,0 +1,18 @@
+{
+  "customers": [
+    {
+      "id": 1,
+      "name": "Small Inc.",
+      "employees": 80,
+      "contactInfo": null,
+      "size": "Small",
+      "industry": "Technology",
+      "address": null
+    }
+  ],
+  "pageInfo": {
+    "currentPage": 1,
+    "totalPages": 1,
+    "totalCustomers": 1
+  }
+}

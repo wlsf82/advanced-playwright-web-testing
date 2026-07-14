@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 import customers from '../mocks/customers.json'
+import smallCustomers from '../mocks/smallCustomer.json'
 
 test.describe('EngageSphere', () => {
   test('shows the mocked customer', async ({ page }) => {
@@ -47,5 +48,20 @@ test.describe('EngageSphere', () => {
 
     await expect(page.getByText('Loading...')).toBeVisible()
     await expect(page.getByRole('table')).toBeVisible()
+  })
+
+  test('requests the selected size filter', async ({ page }) => {
+    await page.route('**/customers*', async (route) => {
+      await route.fulfill({ json: smallCustomers })
+    })
+
+    await page.goto('/')
+
+    const [response] = await Promise.all([
+      page.waitForResponse((res) => res.url().includes('/customers') && res.url().includes('size=Small')),
+      page.getByTestId('size-filter').selectOption('Small'),
+    ])
+
+    expect(response.status()).toBe(200)
   })
 })
