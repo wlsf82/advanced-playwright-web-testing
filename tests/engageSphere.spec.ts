@@ -36,4 +36,16 @@ test.describe('EngageSphere', () => {
     await expect(page.getByTestId('name')).toBeDisabled()
     await expect(page.getByRole('button', { name: 'Download CSV' })).toHaveCount(0)
   })
+
+  test('shows the loading state', async ({ page }) => {
+    await page.route('**/customers*', async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await route.fulfill({ json: customers })
+    })
+
+    await page.goto('/')
+
+    await expect(page.getByText('Loading...')).toBeVisible()
+    await expect(page.getByRole('table')).toBeVisible()
+  })
 })
