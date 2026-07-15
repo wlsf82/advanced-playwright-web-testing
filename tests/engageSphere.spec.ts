@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
+import fs from 'fs'
 
 import customers from '../mocks/customers.json'
 import smallCustomers from '../mocks/smallCustomer.json'
 import techCustomer from '../mocks/techCustomer.json'
+import { csvSample } from '../mocks/sampleCsv'
 
 test.describe('EngageSphere', () => {
   test.beforeEach(async ({ context, baseURL }) => {
@@ -167,5 +169,23 @@ test.describe('EngageSphere', () => {
     const cookies = await context.cookies()
     const consent = cookies.find((c) => c.name === 'cookieConsent')
     expect(consent?.value).toBe('declined')
+  })
+
+  test('downloads the customers as a CSV with the right data', async ({ page }) => {
+    await page.route('**/customers*', async (route) => {
+      expect(route.request().method()).toBe('GET')
+      await route.fulfill({ json: customers })
+    })
+
+    await page.goto('/')
+
+    const downloadPromise = page.waitForEvent('download')
+    await page.getByRole('button', { name: 'Download CSV' }).click()
+    const download = await downloadPromise
+
+    expect(download.suggestedFilename()).toBe('customers.csv')
+
+    const content = fs.readFileSync(await download.path(), 'utf8')
+    expect(content).toBe(csvSample)
   })
 })
