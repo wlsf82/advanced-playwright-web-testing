@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures/mockedPage'
+import AxeBuilder from '@axe-core/playwright'
 import fs from 'fs'
 
 import { customersPage } from '../page-objects/customersPage'
@@ -6,6 +7,7 @@ import { customersPage } from '../page-objects/customersPage'
 import customers from '../mocks/customers.json'
 import smallCustomers from '../mocks/smallCustomer.json'
 import techCustomer from '../mocks/techCustomer.json'
+import noCustomers from '../mocks/noCustomers.json'
 import { csvSample } from '../mocks/sampleCsv'
 
 test.describe('EngageSphere', () => {
@@ -26,16 +28,7 @@ test.describe('EngageSphere', () => {
     const engageSphere = customersPage(page)
 
     await page.route('**/customers*', async (route) => {
-      await route.fulfill({
-        json: {
-          customers: [],
-          pageInfo: {
-            currentPage: 1,
-            totalPages: 1,
-            totalCustomers: 0,
-          },
-        },
-      })
+      await route.fulfill({ json: noCustomers })
     })
 
     await engageSphere.open()
@@ -173,5 +166,51 @@ test.describe('EngageSphere', () => {
 
     const content = fs.readFileSync(await download.path(), 'utf8')
     expect(content).toBe(csvSample)
+  })
+
+  test('has no detectable accessibility violations in light mode', async ({ mockedPage }) => {
+    const engageSphere = customersPage(mockedPage)
+
+    await engageSphere.open()
+
+    const accessibilityScanResults = await new AxeBuilder({ page: mockedPage }).analyze()
+    expect(accessibilityScanResults.violations).toEqual([])
+  })
+
+  test('has no detectable accessibility violations in dark mode', async ({ mockedPage }) => {
+    const engageSphere = customersPage(mockedPage)
+
+    await engageSphere.open()
+    await engageSphere.switchToDarkMode()
+
+    const accessibilityScanResults = await new AxeBuilder({ page: mockedPage }).analyze()
+    expect(accessibilityScanResults.violations).toEqual([])
+  })
+
+  test('has no detectable accessibility violations in empty state in light mode', async ({ mockedPage }) => {
+    const engageSphere = customersPage(mockedPage)
+
+    await mockedPage.route('**/customers*', async (route) => {
+      await route.fulfill({ json: noCustomers })
+    })
+
+    await engageSphere.open()
+
+    const accessibilityScanResults = await new AxeBuilder({ page: mockedPage }).analyze()
+    expect(accessibilityScanResults.violations).toEqual([])
+  })
+
+  test('has no detectable accessibility violations in empty state in dark mode', async ({ mockedPage }) => {
+    const engageSphere = customersPage(mockedPage)
+
+    await mockedPage.route('**/customers*', async (route) => {
+      await route.fulfill({ json: noCustomers })
+    })
+
+    await engageSphere.open()
+    await engageSphere.switchToDarkMode()
+
+    const accessibilityScanResults = await new AxeBuilder({ page: mockedPage }).analyze()
+    expect(accessibilityScanResults.violations).toEqual([])
   })
 })
