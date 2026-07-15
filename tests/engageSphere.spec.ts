@@ -5,6 +5,12 @@ import smallCustomers from '../mocks/smallCustomer.json'
 import techCustomer from '../mocks/techCustomer.json'
 
 test.describe('EngageSphere', () => {
+  test.beforeEach(async ({ context, baseURL }) => {
+    await context.addCookies([
+      { name: 'cookieConsent', value: 'accepted', url: baseURL },
+    ])
+  })
+
   test('shows the mocked customer', async ({ page }) => {
     await page.route('**/customers*', async (route) => {
       expect(route.request().method()).toBe('GET')
