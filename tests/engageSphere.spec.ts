@@ -91,4 +91,24 @@ test.describe('EngageSphere', () => {
     await expect(page.locator('svg[title="image of an empty box"]')).toBeVisible()
     await expect(page.getByText('No customers available.')).toBeVisible()
   })
+
+  test('persists the selected theme', async ({ page }) => {
+    await page.route('**/customers*', async (route) => {
+      expect(route.request().method()).toBe('GET')
+      await route.fulfill({ json: customers })
+    })
+
+    await page.goto('/')
+
+    // Switch to dark mode (the half-moon toggle below the heading).
+    await page.locator('[aria-label="theme light activated"]').click()
+
+    const theme = await page.evaluate(() => localStorage.getItem('theme'))
+    expect(theme).toBe('dark')
+
+    await page.reload()
+
+    const themeAfterReload = await page.evaluate(() => localStorage.getItem('theme'))
+    expect(themeAfterReload).toBe('dark')
+  })
 })
