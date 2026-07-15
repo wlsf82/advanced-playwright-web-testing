@@ -80,4 +80,15 @@ test.describe('EngageSphere', () => {
 
     expect(response.status()).toBe(200)
   })
+
+  test('shows the empty state on a network failure', async ({ page }) => {
+    await page.route('**/customers*', async (route) => {
+      await route.abort()
+    })
+
+    await page.goto('/')
+
+    await expect(page.locator('svg[title="image of an empty box"]')).toBeVisible()
+    await expect(page.getByText('No customers available.')).toBeVisible()
+  })
 })
