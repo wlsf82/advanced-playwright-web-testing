@@ -136,4 +136,36 @@ test.describe('EngageSphere', () => {
     const paginationLimitAfterReload = await page.evaluate(() => localStorage.getItem('paginationLimit'))
     expect(paginationLimitAfterReload).toBe('20')
   })
+
+  test('stores the accepted consent as a cookie', async ({ page, context }) => {
+    await page.route('**/customers*', async (route) => {
+      expect(route.request().method()).toBe('GET')
+      await route.fulfill({ json: customers })
+    })
+
+    await context.clearCookies()
+    await page.goto('/')
+
+    await page.getByRole('button', { name: 'Accept' }).click()
+
+    const cookies = await context.cookies()
+    const consent = cookies.find((c) => c.name === 'cookieConsent')
+    expect(consent?.value).toBe('accepted')
+  })
+
+  test('stores the declined consent as a cookie', async ({ page, context }) => {
+    await page.route('**/customers*', async (route) => {
+      expect(route.request().method()).toBe('GET')
+      await route.fulfill({ json: customers })
+    })
+
+    await context.clearCookies()
+    await page.goto('/')
+
+    await page.getByRole('button', { name: 'Decline' }).click()
+
+    const cookies = await context.cookies()
+    const consent = cookies.find((c) => c.name === 'cookieConsent')
+    expect(consent?.value).toBe('declined')
+  })
 })
