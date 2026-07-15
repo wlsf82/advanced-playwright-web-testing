@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures/mockedPage'
 import fs from 'fs'
 
 import customers from '../mocks/customers.json'
@@ -13,16 +13,9 @@ test.describe('EngageSphere', () => {
     ])
   })
 
-  test('shows the mocked customer', async ({ page }) => {
-    await page.route('**/customers*', async (route) => {
-      expect(route.request().method()).toBe('GET')
-      await route.fulfill({ json: customers })
-    })
-
-    await page.goto('/')
-
-    await expect(page.getByRole('table')).toBeVisible()
-    await expect(page.getByText('SpaceY Inc.')).toBeVisible()
+  test('shows the mocked customer', async ({ mockedPage }) => {
+    await expect(mockedPage.getByRole('table')).toBeVisible()
+    await expect(mockedPage.getByText('SpaceY Inc.')).toBeVisible()
   })
 
   test('shows the empty state when there are no customers', async ({ page }) => {
@@ -100,87 +93,56 @@ test.describe('EngageSphere', () => {
     await expect(page.getByText('No customers available.')).toBeVisible()
   })
 
-  test('persists the selected theme', async ({ page }) => {
-    await page.route('**/customers*', async (route) => {
-      expect(route.request().method()).toBe('GET')
-      await route.fulfill({ json: customers })
-    })
-
-    await page.goto('/')
-
+  test('persists the selected theme', async ({ mockedPage }) => {
     // Switch to dark mode (the half-moon toggle below the heading).
-    await page.locator('[aria-label="theme light activated"]').click()
+    await mockedPage.locator('[aria-label="theme light activated"]').click()
 
-    const theme = await page.evaluate(() => localStorage.getItem('theme'))
+    const theme = await mockedPage.evaluate(() => localStorage.getItem('theme'))
     expect(theme).toBe('dark')
 
-    await page.reload()
+    await mockedPage.reload()
 
-    const themeAfterReload = await page.evaluate(() => localStorage.getItem('theme'))
+    const themeAfterReload = await mockedPage.evaluate(() => localStorage.getItem('theme'))
     expect(themeAfterReload).toBe('dark')
   })
 
-  test('persists the selected pagination limit', async ({ page }) => {
-    await page.route('**/customers*', async (route) => {
-      expect(route.request().method()).toBe('GET')
-      await route.fulfill({ json: customers })
-    })
+  test('persists the selected pagination limit', async ({ mockedPage }) => {
+    await mockedPage.locator('[aria-label="Pagination limit"]').selectOption('20')
 
-    await page.goto('/')
-
-    await page.locator('[aria-label="Pagination limit"]').selectOption('20')
-
-    const paginationLimit = await page.evaluate(() => localStorage.getItem('paginationLimit'))
+    const paginationLimit = await mockedPage.evaluate(() => localStorage.getItem('paginationLimit'))
     expect(paginationLimit).toBe('20')
 
-    await page.reload()
+    await mockedPage.reload()
 
-    const paginationLimitAfterReload = await page.evaluate(() => localStorage.getItem('paginationLimit'))
+    const paginationLimitAfterReload = await mockedPage.evaluate(() => localStorage.getItem('paginationLimit'))
     expect(paginationLimitAfterReload).toBe('20')
   })
 
-  test('stores the accepted consent as a cookie', async ({ page, context }) => {
-    await page.route('**/customers*', async (route) => {
-      expect(route.request().method()).toBe('GET')
-      await route.fulfill({ json: customers })
-    })
-
+  test('stores the accepted consent as a cookie', async ({ mockedPage, context }) => {
     await context.clearCookies()
-    await page.goto('/')
+    await mockedPage.goto('/')
 
-    await page.getByRole('button', { name: 'Accept' }).click()
+    await mockedPage.getByRole('button', { name: 'Accept' }).click()
 
     const cookies = await context.cookies()
     const consent = cookies.find((c) => c.name === 'cookieConsent')
     expect(consent?.value).toBe('accepted')
   })
 
-  test('stores the declined consent as a cookie', async ({ page, context }) => {
-    await page.route('**/customers*', async (route) => {
-      expect(route.request().method()).toBe('GET')
-      await route.fulfill({ json: customers })
-    })
-
+  test('stores the declined consent as a cookie', async ({ mockedPage, context }) => {
     await context.clearCookies()
-    await page.goto('/')
+    await mockedPage.goto('/')
 
-    await page.getByRole('button', { name: 'Decline' }).click()
+    await mockedPage.getByRole('button', { name: 'Decline' }).click()
 
     const cookies = await context.cookies()
     const consent = cookies.find((c) => c.name === 'cookieConsent')
     expect(consent?.value).toBe('declined')
   })
 
-  test('downloads the customers as a CSV with the right data', async ({ page }) => {
-    await page.route('**/customers*', async (route) => {
-      expect(route.request().method()).toBe('GET')
-      await route.fulfill({ json: customers })
-    })
-
-    await page.goto('/')
-
-    const downloadPromise = page.waitForEvent('download')
-    await page.getByRole('button', { name: 'Download CSV' }).click()
+  test('downloads the customers as a CSV with the right data', async ({ mockedPage }) => {
+    const downloadPromise = mockedPage.waitForEvent('download')
+    await mockedPage.getByRole('button', { name: 'Download CSV' }).click()
     const download = await downloadPromise
 
     expect(download.suggestedFilename()).toBe('customers.csv')
