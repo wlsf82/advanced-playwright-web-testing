@@ -111,4 +111,23 @@ test.describe('EngageSphere', () => {
     const themeAfterReload = await page.evaluate(() => localStorage.getItem('theme'))
     expect(themeAfterReload).toBe('dark')
   })
+
+  test('persists the selected pagination limit', async ({ page }) => {
+    await page.route('**/customers*', async (route) => {
+      expect(route.request().method()).toBe('GET')
+      await route.fulfill({ json: customers })
+    })
+
+    await page.goto('/')
+
+    await page.locator('[aria-label="Pagination limit"]').selectOption('20')
+
+    const paginationLimit = await page.evaluate(() => localStorage.getItem('paginationLimit'))
+    expect(paginationLimit).toBe('20')
+
+    await page.reload()
+
+    const paginationLimitAfterReload = await page.evaluate(() => localStorage.getItem('paginationLimit'))
+    expect(paginationLimitAfterReload).toBe('20')
+  })
 })
